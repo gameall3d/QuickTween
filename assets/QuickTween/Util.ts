@@ -1,10 +1,20 @@
-import { math, Vec3 } from "cc";
+import { KeyCode, math, Quat, Vec3 } from "cc";
+
+export enum ShakeRandomnessMode {
+    Harmonic,
+    Full
+}
 
 export function clampLength(vec: Vec3, maxLength: number) {
     const clampVec = new Vec3();
     Vec3.normalize(clampVec, vec);
     Vec3.multiplyScalar(clampVec, clampVec, maxLength);
     return clampVec;
+}
+
+export function vec3FromAngle(degree: number, length: number) {
+    const radian = math.toRadian(degree);
+    return new Vec3(length * Math.cos(radian), length * Math.sign(radian), 0);
 }
 
 export function calcPunchData(start: Vec3, direction: Vec3, duration: number, vibrato: number, elasticity: number) {
@@ -51,23 +61,25 @@ export function calcPunchData(start: Vec3, direction: Vec3, duration: number, vi
     }
 
     return {
-        durations,
         tos,
+        durations
     }
 }
 
-function calcShakeData(strength: Vec3, duration: number, vibrato: number, randomness: number, ignoreZAxis: boolean, vectorBased: boolean) {
-    const shakeMag = vectorBased ? strength.length() : strength.x;
+export function calcShakeData(duration: number, strength: Vec3, vibrato: number, randomness: number, ignoreZAxis: boolean, vectorBased: boolean,
+    fadeOut: boolean, randomnessMode: ShakeRandomnessMode) {
+        KeyCode
+    let shakeLength = vectorBased ? strength.length() : strength.x;
     let toIterations = Math.floor(vibrato * duration);
     if (toIterations < 2) {
         toIterations = 2;
     }
-    const deltaShakeMag = shakeMag / toIterations;
+    const deltaShakeLen = shakeLength / toIterations;
     let durations = [];
     let sum = 0;
     for (let i = 0; i < toIterations; i++) {
         const iterationPercent = (i + 1) / toIterations;
-        const deltaDuration = duration * iterationPercent;
+        const deltaDuration = fadeOut ? duration * iterationPercent : duration / toIterations;
         sum += deltaDuration;
         durations[i] = deltaDuration;
     }
@@ -75,6 +87,63 @@ function calcShakeData(strength: Vec3, duration: number, vibrato: number, random
     const durationMultiplier = duration / sum;
     durations = durations.map((d) => d * durationMultiplier );
 
-    const angle = math.randomRange(0, 360);
+    let angle = math.randomRange(0, 360);
     const tos: Vec3[] =[];
+
+    for (let i = 0; i < toIterations; i++) {
+        if (i < toIterations - 1) {
+            let randQuat = new Quat();
+            switch(randomnessMode) {
+                case ShakeRandomnessMode.Harmonic:
+                    if (i > 0) {
+                        angle = angle - 180 + math.randomRange(0, randomness);
+                    }
+                    if (vectorBased || !ignoreZAxis) {
+                        Quat.fromAxisAngle(randQuat, Vec3.UP, math.randomRange(0, randomness));
+                    }
+                    break;
+                default:
+                    if (i > 0) {
+                        angle = angle - 180 + math.randomRange(-randomness, randomness);
+                    }
+                    if (vectorBased || !ignoreZAxis) {
+                        Quat.fromAxisAngle(randQuat, Vec3.UP, math.randomRange(-randomness, randomness));
+                    }
+                    break;
+            }
+
+            if (vectorBased) {
+                let to = vec3FromAngle(angle, shakeLength);
+                Vec3.transformQuat(to, to, randQuat);
+                to.x = clampLength(to, strength.x).x;
+                to.y = clampLength(to, strength.y).y;
+                to.z = clampLength(to, strength.z).z;
+                to.normalize().multiplyScalar(shakeLength);
+                tos[i] = to;
+                if (fadeOut) {
+                    shakeLength -= deltaShakeLen;
+                }
+                strength = clampLength(strength, shakeLength);
+            } else {
+                if (ignoreZAxis) {
+                    tos[i] = vec3FromAngle(angle, shakeLength);
+                } else {
+                    let to = vec3FromAngle(angle, shakeLength);
+                    Vec3.transformQuat(to, to, randQuat);
+                    tos[i] = to;
+                }
+
+                if (fadeOut) {
+                    shakeLength -= deltaShakeLen;
+                }
+            }
+        } else {
+            tos[i] = Vec3.ZERO;
+        }
+    }
+
+    return {
+        tos,
+        durations
+    }
 }

@@ -1,4 +1,6 @@
-    
+import type { ShakeRandomnessMode } from "./Util";
+
+
 declare module 'cc' {
     interface Node {
         /**
@@ -189,10 +191,16 @@ declare module 'cc' {
          * @param duration 时间
          */
         qtJumpPosition(to: Vec3, jumpHeight: number, jumpNum: number, duration: number): Tween<Node>;
+
+        qtShakePosition(duration: number, strength: Vec3|number, vibrato?: number, randomness?: number, fadeOut?: boolean, randomnessMode?: ShakeRandomnessMode): Tween<Node>;
     }
 
     interface Sprite {
         qtColor(to: Color, duration: number): Tween<Sprite>;
         qtOpacity(to: number, duration: number): Tween<Sprite>;
+    }
+
+    interface Camera {
+        qtShakePosition(duration: number, strength: Vec3|number, vibrato?: number, randomness?: number, fadeOut?: boolean, randomnessMode?: ShakeRandomnessMode): Tween<Node>;
     }
 }

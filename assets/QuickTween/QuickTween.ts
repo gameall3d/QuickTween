@@ -1,6 +1,6 @@
 
-import { Component, Node, Vec3, tween, Quat, Sprite, Color, math, easing } from 'cc';
-import { calcPunchData, clampLength } from './Util';
+import { Component, Node, Vec3, tween, Quat, Sprite, Color, math, easing, Camera } from 'cc';
+import { calcPunchData, calcShakeData, clampLength, ShakeRandomnessMode } from './Util';
 
 //////////////////////
 // Transform
@@ -76,7 +76,7 @@ Node.prototype.qtScaleZ = function(to: number, duration: number) {
 }
 
 Node.prototype.qtPunchPosition = function(punch: Vec3, duration: number, vibrato: number = 3, elasticity: number = 0.5) {
-    const {durations, tos} = calcPunchData(this.position.clone(), punch, duration, vibrato, elasticity);
+    const {tos, durations} = calcPunchData(this.position.clone(), punch, duration, vibrato, elasticity);
 
     const punchTween = tween(this);
     tos.forEach((to, index) => {
@@ -88,7 +88,7 @@ Node.prototype.qtPunchPosition = function(punch: Vec3, duration: number, vibrato
 }
 
 Node.prototype.qtPunchRotation = function(punch: Vec3, duration: number, vibrato: number = 3, elasticity: number = 0.5) {
-    const {durations, tos} = calcPunchData(this.rotation.clone(), punch, duration, vibrato, elasticity);
+    const {tos, durations} = calcPunchData(this.rotation.clone(), punch, duration, vibrato, elasticity);
 
     const punchTween = tween(this);
     tos.forEach((to, index) => {
@@ -100,7 +100,7 @@ Node.prototype.qtPunchRotation = function(punch: Vec3, duration: number, vibrato
 }
 
 Node.prototype.qtPunchScale = function(punch: Vec3, duration: number, vibrato: number = 3, elasticity: number = 0.5) {
-    const {durations, tos} = calcPunchData(this.scale.clone(), punch, duration, vibrato, elasticity);
+    const {tos, durations} = calcPunchData(this.scale.clone(), punch, duration, vibrato, elasticity);
 
     const punchTween = tween(this);
     tos.forEach((to, index) => {
@@ -186,6 +186,25 @@ Node.prototype.qtJumpPosition = function(to: Vec3, jumpHeight: number, jumpNum: 
     return jumpTween;
 }
 
+Node.prototype.qtShakePosition = function(duration: number, strength: Vec3|number, vibrato: number = 10, randomness: number = 90, fadeOut: boolean = true, shakeRandomnessMode: ShakeRandomnessMode = ShakeRandomnessMode.Full) {
+    let toStrength: Vec3;
+    let vectorBased = false;
+    if (!(strength instanceof Vec3)) {
+        toStrength = new Vec3(strength, strength, strength);
+    } else {
+        toStrength = strength;
+        vectorBased = true;
+    }
+    const {tos, durations} = calcShakeData(duration, toStrength, vibrato, randomness, false, vectorBased, fadeOut, shakeRandomnessMode)
+    const shakeTween = tween(this);
+    tos.forEach((to, index)=> {
+        const d = durations[index];
+        shakeTween.then(tween().to(d, {position: to}));
+    });
+
+    return shakeTween.union();
+}
+
 //////////////////////
 // Sprite
 //////////////////////
@@ -204,4 +223,26 @@ Sprite.prototype.qtOpacity = function(to: number, duration: number) {
             tempColor.set(startColor.r, startColor.g, startColor.b, lerpA);
             this.color = tempColor;
     }});
+}
+
+//////////////////////
+// Camera
+//////////////////////
+Camera.prototype.qtShakePosition = function(duration: number, strength: Vec3|number, vibrato: number = 10, randomness: number = 90, fadeOut: boolean = true, shakeRandomnessMode: ShakeRandomnessMode = ShakeRandomnessMode.Full) {
+    let toStrength: Vec3;
+    let vectorBased = false;
+    if (!(strength instanceof Vec3)) {
+        toStrength = new Vec3(strength, strength, strength);
+    } else {
+        toStrength = strength;
+        vectorBased = true;
+    }
+    const {tos, durations} = calcShakeData(duration, toStrength, vibrato, randomness, true, vectorBased, fadeOut, shakeRandomnessMode)
+    const shakeTween = tween(this.node);
+    tos.forEach((to, index)=> {
+        const d = durations[index];
+        shakeTween.then(tween().to(d, {position: to}));
+    });
+
+    return shakeTween.union();
 }

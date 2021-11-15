@@ -1,5 +1,5 @@
 
-import { _decorator, Component, Node, Vec3 } from 'cc';
+import { _decorator, Component, Node, Vec3, Camera } from 'cc';
 const { ccclass, property } = _decorator;
 
 
@@ -9,6 +9,8 @@ export class TestJump extends Component {
     @property({type: Node})
     public testCube: Node;
 
+    @property({type: Camera})
+    public testCamera: Camera;
 
 
     start () {
@@ -24,7 +26,9 @@ export class TestJump extends Component {
         // this.testCube.qtJumpPosition(new Vec3(3, 0, 0), 3, 1, 1)
         // .then(this.testCube.qtJumpPosition(new Vec3(0, 0, 0), 3, 1, 1)).union().repeat(5).start();
         // this.testCube.qtJumpPosition(new Vec3(3, 1, 0), 3, 1, 1).start();
-        this.testCube.qtPunchScale(new Vec3(1, 1, 1), 1, 10, 1).start();
+        // this.testCube.qtPunchScale(new Vec3(1, 1, 1), 1, 10, 1).start();
+        // this.testCube.qtShakePosition(1, new Vec3(0.5, 0.5, 0)).start();
+        this.testCamera.qtShakePosition(1, 0.1).start();
     }
 }
 

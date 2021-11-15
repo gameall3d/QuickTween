@@ -1,5 +1,5 @@
 # QuickTween
-简化CocosCreator中Tween的使用流程。
+简化CocosCreator中Tween的使用流程。参考了[DOTWeen](http://dotween.demigiant.com/index.php)。
 
 ## 更便利的创建tween
 直接在相关对象的原型上polyfill了tween的创建
