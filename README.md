@@ -3,6 +3,7 @@
 
 ## 更便利的创建tween
 直接在相关对象的原型上polyfill了tween的创建
+
 内置方式：
 ```ts
 cc.tween(node).to(1, { position: new Vec(0, 3, 0)}).start();
@@ -20,7 +21,7 @@ node.qtPosition(new Vec3(0, 3, 0), 1).start();
 ### `qtJumpPosition`
 用于从一个位置跳到另一个位置
 ```ts
-node.qtJumpPosition(new Vec3(3, 1, 0), 3, 1, 1);
+node.qtJumpPosition(new Vec3(3, 1, 0), 3, 1, 1).start();
 ```
 
 !['jump'](./imgs/jump.gif)
