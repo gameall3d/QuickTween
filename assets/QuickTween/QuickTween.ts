@@ -1,6 +1,6 @@
 
 import { Component, Node, Vec3, tween, Quat, Sprite, Color, math, easing, Camera } from 'cc';
-import { calcPunchData, calcShakeData, clampLength, ShakeRandomnessMode } from './Util';
+import { calcPunchData, calcShakeData } from './Util';
 
 //////////////////////
 // Transform
@@ -186,7 +186,7 @@ Node.prototype.qtJumpPosition = function(to: Vec3, jumpHeight: number, jumpNum: 
     return jumpTween;
 }
 
-Node.prototype.qtShakePosition = function(duration: number, strength: Vec3|number, vibrato: number = 10, randomness: number = 90, fadeOut: boolean = true, shakeRandomnessMode: ShakeRandomnessMode = ShakeRandomnessMode.Full) {
+Node.prototype.qtShakePosition = function(duration: number, strength: Vec3|number, vibrato: number = 10, randomness: number = 90, fadeOut: boolean = true) {
     let toStrength: Vec3;
     let vectorBased = false;
     if (!(strength instanceof Vec3)) {
@@ -195,11 +195,49 @@ Node.prototype.qtShakePosition = function(duration: number, strength: Vec3|numbe
         toStrength = strength;
         vectorBased = true;
     }
-    const {tos, durations} = calcShakeData(duration, toStrength, vibrato, randomness, false, vectorBased, fadeOut, shakeRandomnessMode)
+    const {tos, durations} = calcShakeData(this.position.clone(), duration, toStrength, vibrato, randomness, false, vectorBased, fadeOut)
     const shakeTween = tween(this);
     tos.forEach((to, index)=> {
         const d = durations[index];
         shakeTween.then(tween().to(d, {position: to}));
+    });
+
+    return shakeTween.union();
+}
+
+Node.prototype.qtShakeRotation = function(duration: number, strength: Vec3|number, vibrato: number = 10, randomness: number = 90, fadeOut: boolean = true) {
+    let toStrength: Vec3;
+    let vectorBased = false;
+    if (!(strength instanceof Vec3)) {
+        toStrength = new Vec3(strength, strength, strength);
+    } else {
+        toStrength = strength;
+        vectorBased = true;
+    }
+    const {tos, durations} = calcShakeData(this.eulerAngles.clone(), duration, toStrength, vibrato, randomness, false, vectorBased, fadeOut)
+    const shakeTween = tween(this);
+    tos.forEach((to, index)=> {
+        const d = durations[index];
+        shakeTween.then(tween().to(d, {eulerAngles: to}));
+    });
+
+    return shakeTween.union();
+}
+
+Node.prototype.qtShakeScale = function(duration: number, strength: Vec3|number, vibrato: number = 10, randomness: number = 90, fadeOut: boolean = true) {
+    let toStrength: Vec3;
+    let vectorBased = false;
+    if (!(strength instanceof Vec3)) {
+        toStrength = new Vec3(strength, strength, strength);
+    } else {
+        toStrength = strength;
+        vectorBased = true;
+    }
+    const {tos, durations} = calcShakeData(this.scale.clone(), duration, toStrength, vibrato, randomness, false, vectorBased, fadeOut)
+    const shakeTween = tween(this);
+    tos.forEach((to, index)=> {
+        const d = durations[index];
+        shakeTween.then(tween().to(d, {scale: to}));
     });
 
     return shakeTween.union();
@@ -228,7 +266,7 @@ Sprite.prototype.qtOpacity = function(to: number, duration: number) {
 //////////////////////
 // Camera
 //////////////////////
-Camera.prototype.qtShakePosition = function(duration: number, strength: Vec3|number, vibrato: number = 10, randomness: number = 90, fadeOut: boolean = true, shakeRandomnessMode: ShakeRandomnessMode = ShakeRandomnessMode.Full) {
+Camera.prototype.qtShakePosition = function(duration: number, strength: Vec3|number, vibrato: number = 10, randomness: number = 90, fadeOut: boolean = true) {
     let toStrength: Vec3;
     let vectorBased = false;
     if (!(strength instanceof Vec3)) {
@@ -237,7 +275,7 @@ Camera.prototype.qtShakePosition = function(duration: number, strength: Vec3|num
         toStrength = strength;
         vectorBased = true;
     }
-    const {tos, durations} = calcShakeData(duration, toStrength, vibrato, randomness, true, vectorBased, fadeOut, shakeRandomnessMode)
+    const {tos, durations} = calcShakeData(this.node.position.clone(), duration, toStrength, vibrato, randomness, true, vectorBased, fadeOut)
     const shakeTween = tween(this.node);
     tos.forEach((to, index)=> {
         const d = durations[index];

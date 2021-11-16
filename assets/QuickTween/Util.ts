@@ -1,20 +1,19 @@
 import { KeyCode, math, Quat, Vec3 } from "cc";
 
-export enum ShakeRandomnessMode {
-    Harmonic,
-    Full
-}
-
 export function clampLength(vec: Vec3, maxLength: number) {
-    const clampVec = new Vec3();
-    Vec3.normalize(clampVec, vec);
-    Vec3.multiplyScalar(clampVec, clampVec, maxLength);
-    return clampVec;
+    if (vec.lengthSqr() > maxLength * maxLength) {
+        const clampVec = new Vec3();
+        Vec3.normalize(clampVec, vec);
+        clampVec.multiplyScalar(maxLength);
+        return clampVec;
+    }
+
+    return vec;
 }
 
 export function vec3FromAngle(degree: number, length: number) {
     const radian = math.toRadian(degree);
-    return new Vec3(length * Math.cos(radian), length * Math.sign(radian), 0);
+    return new Vec3(length * Math.cos(radian), length * Math.sin(radian), 0);
 }
 
 export function calcPunchData(start: Vec3, direction: Vec3, duration: number, vibrato: number, elasticity: number) {
@@ -66,8 +65,8 @@ export function calcPunchData(start: Vec3, direction: Vec3, duration: number, vi
     }
 }
 
-export function calcShakeData(duration: number, strength: Vec3, vibrato: number, randomness: number, ignoreZAxis: boolean, vectorBased: boolean,
-    fadeOut: boolean, randomnessMode: ShakeRandomnessMode) {
+export function calcShakeData(start: Vec3, duration: number, strength: Vec3, vibrato: number, randomness: number, ignoreZAxis: boolean, vectorBased: boolean,
+    fadeOut: boolean) {
         KeyCode
     let shakeLength = vectorBased ? strength.length() : strength.x;
     let toIterations = Math.floor(vibrato * duration);
@@ -93,24 +92,27 @@ export function calcShakeData(duration: number, strength: Vec3, vibrato: number,
     for (let i = 0; i < toIterations; i++) {
         if (i < toIterations - 1) {
             let randQuat = new Quat();
-            switch(randomnessMode) {
-                case ShakeRandomnessMode.Harmonic:
-                    if (i > 0) {
-                        angle = angle - 180 + math.randomRange(0, randomness);
-                    }
-                    if (vectorBased || !ignoreZAxis) {
-                        Quat.fromAxisAngle(randQuat, Vec3.UP, math.randomRange(0, randomness));
-                    }
-                    break;
-                default:
-                    if (i > 0) {
-                        angle = angle - 180 + math.randomRange(-randomness, randomness);
-                    }
-                    if (vectorBased || !ignoreZAxis) {
-                        Quat.fromAxisAngle(randQuat, Vec3.UP, math.randomRange(-randomness, randomness));
-                    }
-                    break;
+            if (i > 0) {
+                angle = angle - 180 + math.randomRange(-randomness, randomness);
             }
+            // switch(randomnessMode) {
+            //     case ShakeRandomnessMode.Harmonic:
+            //         if (i > 0) {
+            //             angle = angle - 180 + math.randomRange(0, randomness);
+            //         }
+            //         if (vectorBased || !ignoreZAxis) {
+            //             Quat.fromAxisAngle(randQuat, Vec3.UP, math.randomRange(0, randomness));
+            //         }
+            //         break;
+            //     default:
+            //         if (i > 0) {
+            //             angle = angle - 180 + math.randomRange(-randomness, randomness);
+            //         }
+            //         if (vectorBased || !ignoreZAxis) {
+            //             Quat.fromAxisAngle(randQuat, Vec3.UP, math.randomRange(-randomness, randomness));
+            //         }
+            //         break;
+            // }
 
             if (vectorBased) {
                 let to = vec3FromAngle(angle, shakeLength);
@@ -119,18 +121,19 @@ export function calcShakeData(duration: number, strength: Vec3, vibrato: number,
                 to.y = clampLength(to, strength.y).y;
                 to.z = clampLength(to, strength.z).z;
                 to.normalize().multiplyScalar(shakeLength);
-                tos[i] = to;
+                tos[i] = to.add(start);
                 if (fadeOut) {
                     shakeLength -= deltaShakeLen;
                 }
                 strength = clampLength(strength, shakeLength);
             } else {
                 if (ignoreZAxis) {
-                    tos[i] = vec3FromAngle(angle, shakeLength);
+                    tos[i] = vec3FromAngle(angle, shakeLength).add(start);
                 } else {
+                    Quat.fromAxisAngle(randQuat, Vec3.UP, math.randomRange(-randomness, randomness));
                     let to = vec3FromAngle(angle, shakeLength);
                     Vec3.transformQuat(to, to, randQuat);
-                    tos[i] = to;
+                    tos[i] = to.add(start);
                 }
 
                 if (fadeOut) {
@@ -138,7 +141,7 @@ export function calcShakeData(duration: number, strength: Vec3, vibrato: number,
                 }
             }
         } else {
-            tos[i] = Vec3.ZERO;
+            tos[i] = start;
         }
     }
 

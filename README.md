@@ -34,5 +34,13 @@ node.qtPunchScale(new Vec3(1, 1, 1), 1, 10, 1).start();
 
 !['punch scale'](./imgs/punch_scale.gif)
 
+### `qtShakeRotation`
+用于对目标的旋转产生一个抖动效果
+```ts
+node.qtPunchScale(new Vec3(1, 1, 1), 1, 10, 1).start();
+```
+
+!['shake rotation'](./imgs/shake_rotation.gif)
+
 ## 使用方式
 将QuickTween文件夹复制到项目的任意文件夹下，就可以使用了。

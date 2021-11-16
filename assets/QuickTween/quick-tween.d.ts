@@ -1,6 +1,3 @@
-import type { ShakeRandomnessMode } from "./Util";
-
-
 declare module 'cc' {
     interface Node {
         /**
@@ -192,7 +189,44 @@ declare module 'cc' {
          */
         qtJumpPosition(to: Vec3, jumpHeight: number, jumpNum: number, duration: number): Tween<Node>;
 
-        qtShakePosition(duration: number, strength: Vec3|number, vibrato?: number, randomness?: number, fadeOut?: boolean, randomnessMode?: ShakeRandomnessMode): Tween<Node>;
+        /**
+         * @zh
+         * 使目标的位置在设定的参数下抖动
+         * @en
+         * Shakes the target's position with the given values
+         * @param duration 时间
+         * @param strength 强度
+         * @param vibrato 每秒振动次数
+         * @param randomness 随机角度值
+         * @param fadeOut 是否淡出
+         */
+        qtShakePosition(duration: number, strength: Vec3|number, vibrato?: number, randomness?: number, fadeOut?: boolean): Tween<Node>;
+
+        /**
+         * @zh
+         * 使目标的旋转在设定的参数下抖动
+         * @en
+         * Shakes the target's rotation with the given values
+         * @param duration 时间
+         * @param strength 强度
+         * @param vibrato 每秒振动次数
+         * @param randomness 随机角度值
+         * @param fadeOut 是否淡出
+         */
+        qtShakeRotation(duration: number, strength: Vec3|number, vibrato?: number, randomness?: number, fadeOut?: boolean): Tween<Node>;
+
+        /**
+         * @zh
+         * 使目标的缩放在设定的参数下抖动
+         * @en
+         * Shakes the target's scale with the given values
+         * @param duration 时间
+         * @param strength 强度
+         * @param vibrato 每秒振动次数
+         * @param randomness 随机角度值
+         * @param fadeOut 是否淡出
+         */
+        qtShakeScale(duration: number, strength: Vec3|number, vibrato?: number, randomness?: number, fadeOut?: boolean): Tween<Node>;   
     }
 
     interface Sprite {
@@ -201,6 +235,6 @@ declare module 'cc' {
     }
 
     interface Camera {
-        qtShakePosition(duration: number, strength: Vec3|number, vibrato?: number, randomness?: number, fadeOut?: boolean, randomnessMode?: ShakeRandomnessMode): Tween<Node>;
+        qtShakePosition(duration: number, strength: Vec3|number, vibrato?: number, randomness?: number, fadeOut?: boolean): Tween<Node>;
     }
 }
