@@ -29,7 +29,7 @@ node.qtJumpPosition(new Vec3(3, 1, 0), 3, 1, 1).start();
 ### `qtPunchScale`
 用于对目标施加一个力，产生来回弹的效果
 ```ts
-node.qtPunchScale(new Vec3(1, 1, 1), 1, 10, 1).start();
+node.qtPunchScale(new Vec3(1, 1, 1), 1).start();
 ```
 
 !['punch scale'](./imgs/punch_scale.gif)
@@ -37,7 +37,7 @@ node.qtPunchScale(new Vec3(1, 1, 1), 1, 10, 1).start();
 ### `qtShakeRotation`
 用于对目标的旋转产生一个抖动效果
 ```ts
-node.qtPunchScale(new Vec3(1, 1, 1), 1, 10, 1).start();
+node.qtPunchScale(new Vec3(1, 1, 1), 1).start();
 ```
 
 !['shake rotation'](./imgs/shake_rotation.gif)
